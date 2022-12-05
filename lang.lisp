@@ -34,8 +34,8 @@
 
 (defun find-external-symbol (name package)
   (setf name (string name))
-  (or (serapeum:find-external-symbol name package)
-      (cl:error "No symbol named ~a exported from ~s." name package)))
+  (cl:or (serapeum:find-external-symbol name package)
+         (cl:error "No symbol named ~a exported from ~s." name package)))
 
 (serapeum:defmethods core-lisp-module (self package default-export)
   (:method vernacular:module-exports (self)
@@ -51,8 +51,8 @@
     ;; This is more complicated than `symbol-value' because of global
     ;; lexicals.
     (let* ((sym (find-external-symbol name package))
-           (alias (or (get-alias sym '%aliases% nil)
-                      sym)))
+           (alias (cl:or (get-alias sym '%aliases% nil)
+                         sym)))
       (symbol-value alias)))
   (:method vernacular:module-ref-ns (self (name (cl:eql 'vernacular:default)) (ns cl:null))
     default-export)
@@ -65,12 +65,12 @@
   ;; Variable-only at the moment.
   (cl:let* ((export-forms
               (loop for form in body
-                    if (and (consp form)
-                            (eql (first form) :export))
+                    if (cl:and (consp form)
+                               (eql (first form) :export))
                       collect form))
             (export-default-form
               (loop for form in body
-                    if (and (consp form) (eql (first form) :export-default))
+                    if (cl:and (consp form) (eql (first form) :export-default))
                       return form))
             (meta-forms
               (if export-default-form
@@ -83,7 +83,7 @@
             (exports
               (loop for form in export-forms
                     append (rest form))))
-    (assert (not (and export-forms export-default-form)))
+    (assert (not (cl:and export-forms export-default-form)))
     (with-unique-names (source pkg)
       `(progn
          ,@body
@@ -101,10 +101,10 @@
                                     `(export ',symbol))))
                  (make-instance 'core-lisp-module
                                 :package ,pkg
-                                ,@(and export-default-form
-                                       `(:default-export
-                                         (progn
-                                           ,@(rest export-default-form)))))))))))
+                                ,@(cl:and export-default-form
+                                          `(:default-export
+                                            (progn
+                                              ,@(rest export-default-form)))))))))))
 
 (defmacro import (m &rest args)
   `(macrolet ((vernacular/cl:defmacro (name args &body body)
