@@ -239,8 +239,12 @@
            (cl:equalp obj1 obj2))))
 
 (import-function not cl:not (obj))
-(import-macro and cl:and (&rest forms))
-(import-macro or cl:or (&rest forms))
+
+#-allegro (import-macro and cl:and (&rest forms))
+#+allegro (defmacro and (&rest forms) `(cl:and ,@forms))
+
+#-allegro (import-macro or cl:or (&rest forms))
+#+allegro (defmacro or (&rest forms) `(cl:or ,@forms))
 
 (defmacro quote (object) `(cl:quote ,object))
 
